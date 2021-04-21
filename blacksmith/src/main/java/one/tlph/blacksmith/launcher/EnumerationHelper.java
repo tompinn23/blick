@@ -1,0 +1,36 @@
+package one.tlph.blacksmith.launcher;
+
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class EnumerationHelper {
+    public static <T> Enumeration<T> merge(Enumeration<T> first, Enumeration<T> second) {
+        return new Enumeration<T>() {
+            @Override
+            public boolean hasMoreElements() {
+                return first.hasMoreElements() || second.hasMoreElements();
+            }
+
+            @Override
+            public T nextElement() {
+                return first.hasMoreElements() ? first.nextElement() : second.nextElement();
+            }
+        };
+    }
+
+    public static <T> Function<String, Enumeration<T>> mergeFunctors(Function<String, Enumeration<T>> first, Function<String, Enumeration<T>> second) {
+        return input -> merge(first.apply(input), second.apply(input));
+    }
+
+    public static <T> T firstElementOrNull(final Enumeration<T> enumeration) {
+        return enumeration.hasMoreElements() ? enumeration.nextElement() : null;
+    }
+
+    public static <T> Function<String, Enumeration<T>> fromOptional(final Function<String, Optional<T>> additionalClassBytesLocator) {
+        return input -> Collections.enumeration(additionalClassBytesLocator.apply(input).map(Stream::of).orElseGet(Stream::empty).collect(Collectors.toList()));
+    }
+}
